@@ -1,6 +1,7 @@
 from . import db
 import datetime
 from marshmallow import fields, Schema
+#from ..models.VoteModel import VoteModel
 
 
 class RecipeModel(db.Model):
@@ -52,8 +53,13 @@ class RecipeModel(db.Model):
     def get_user_recipes(user_id):
         return RecipeModel.query.filter_by(owner_id=user_id)
 
-    def get_recipe_of_user(owner_id,recipe_id):
+    @staticmethod
+    def get_recipe_of_user(owner_id, recipe_id):
         return RecipeModel.query.filter_by(owner_id=owner_id, recipe_id=recipe_id)
+
+    @staticmethod
+    def get_and_filter_recipe():
+        return RecipeModel.query.join(VoteModel).all()
 
     def __repr__(self):
         return '<id {}>'.format(self.id)

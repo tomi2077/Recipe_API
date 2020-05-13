@@ -3,7 +3,6 @@ from ..shared.Authentication import Auth
 from ..models.RecipeModel import RecipeModel, RecipeSchema
 from ..models.VoteModel import VoteModel, VoteSchema
 from ..models.ReviewModel import ReviewModel, ReviewSchema
-from sqlalchemy import func, desc
 
 recipe_api = Blueprint('recipe', __name__)
 recipe_schema = RecipeSchema()
@@ -69,7 +68,11 @@ def delete(recipe_id):
 
 # @recipe_api.route('/', methods=['GET'])
 # def get_all():
-#     recipe_all = RecipeModel.get_all_recipes()
+#     query_params = request.args
+#     print(query_params, 'queryparams')
+#
+#     recipe_all = RecipeModel.get_and_filter_recipe()
+#     # recipe_all = RecipeModel.get_all_recipes()
 #     recipe = recipe_schema.dump(recipe_all, many=True)
 #     return custom_response(recipe, 200)
 
@@ -137,16 +140,29 @@ def reviews(recipe_id):
 
 
 @recipe_api.route('/', methods=['GET'])
-def get_all_most_upvote():
+def get_all():
+    recipe_all = RecipeModel.query
+    if request.args:
+        sort = request.args['sort']
+        order = request.args['order']
 
-    vote1 = VoteModel.get_all_votes()
-    for votes in vote1:
-        print(vo
-    print(vote1)
-    # vote = VoteModel.query.order_by(VoteModel.recipe_id).filter_by().all()
-    # # # vote = VoteModel.query.order_by(a).limit(2).all()
-    vote_data = recipe_schema.dump(vote1, many=True)
-    return custom_response(vote_data, 200)
+        if order == 'desc':
+            if sort == 'upvotes':
+                recipe_all = recipe_all.order_by(RecipeModel.id.desc())
+            elif sort == 'downvotes':
+                recipe_all = recipe_all.order_by(RecipeModel.id.desc())
+        elif order == 'asc':
+            if sort == 'upvotes':
+                recipe_all = recipe_all.order_by(RecipeModel.id.asc())
+            elif sort == 'downvotes':
+                recipe_all = recipe_all.order_by(RecipeModel.id.asc())
+
+    recipe_all = recipe_all.all()
+    # recipe_all = RecipeModel.get_all_recipes()
+    # recipe_all = RecipeModel.query.join(VoteModel).group_by(RecipeModel.id).order_by(func.count().desc()).all()
+    recipe = recipe_schema.dump(recipe_all, many=True)
+    return custom_response(recipe, 200)
+
 
 def custom_response(res, status_code):
     """
